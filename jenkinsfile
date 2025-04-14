@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+    environment {
+
+        REPO_URL = ""
+        BRANCH = "main"
+
+    }
+stages {
+    stage ('Git SCM checkout'){
+        steps{
+            script {
+                echo "Checking out the repository from ${REPO_URL}"
+                git branch: "${BRANCH}", url: "${REPO_URL}"
+            }
+        }
+    }
+}
+
+
+stages ('Build') {
+    steps{
+        steps {
+            script {
+                echo "Running the build"
+                sh 'npm install'
+                sh 'npm run build'
+            }
+        }
+    }
+}
+
+stages ('Build Docker Image') {
+    steps{
+        script {
+            echo "Building Docker image"
+            sh 'docker build -t myapp:latest .'
+        }
+    }
+}
+
+stages ('stop and remove existing container'){
+    steps {
+        script{
+            echo "Stopping and removing existing container"
+            sh """
+                docker stop myapp || true
+                docker rm myapp || true
+            """
+        }
+    }    
+}
+
+stages ('Run Docker Container') {
+    steps {
+        script {
+            echo "Running the Docker container"
+            sh 'docker run -d --name myapp -p 8080:8080 myapp:latest'
+        }
+    }    
+}
+
+post {
+    success {
+        echo "Pipeline completed successfully!"
+    }
+    failure {
+        echo "Pipeline failed!"
+    }
+}
+    
+}
