@@ -22,4 +22,4 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 
 
-;R4XVbw+Vn%/Ep&
+#;R4XVbw+Vn%/Ep&
