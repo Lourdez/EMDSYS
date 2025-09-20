@@ -1,72 +1,42 @@
 pipeline {
     agent any
-    environment {
 
-        REPO_URL = ""
-        BRANCH = "main"
-
+    tools {
+        sonarQubeScanner 'SonarScanner'  // must match Jenkins config
     }
-stages {
-    stage ('Git SCM checkout'){
-        steps{
-            script {
-                echo "Checking out the repository from ${REPO_URL}"
-                git branch: "${BRANCH}", url: "${REPO_URL}"
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Lourdez/EMDSYS.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'echo "Pretend build step here"'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                      sonar-scanner \
+                        -Dsonar.projectKey=test-project \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://host.docker.internal:9000
+                    """
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
-}
-
-
-stages ('Build') {
-    steps{
-        steps {
-            script {
-                echo "Running the build"
-                sh 'npm install'
-                sh 'npm run build'
-            }
-        }
-    }
-}
-
-stages ('Build Docker Image') {
-    steps{
-        script {
-            echo "Building Docker image"
-            sh 'docker build -t myapp:latest .'
-        }
-    }
-}
-
-stages ('stop and remove existing container'){
-    steps {
-        script{
-            echo "Stopping and removing existing container"
-            sh """
-                docker stop myapp || true
-                docker rm myapp || true
-            """
-        }
-    }    
-}
-
-stages ('Run Docker Container') {
-    steps {
-        script {
-            echo "Running the Docker container"
-            sh 'docker run -d --name myapp -p 8080:8080 myapp:latest'
-        }
-    }    
-}
-
-post {
-    success {
-        echo "Pipeline completed successfully!"
-    }
-    failure {
-        echo "Pipeline failed!"
-    }
-}
-    
 }
