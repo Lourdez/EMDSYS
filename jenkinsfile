@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        sonarQubeScanner 'SonarScanner'  // must match Jenkins config
+        sonarQubeScanner 'SonarQube'  // must match Jenkins config
     }
 
     stages {
