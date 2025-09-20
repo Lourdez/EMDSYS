@@ -4,13 +4,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Lourdez/EMDSYS.git'
+                git branch: 'main', url: 'https://github.com/<your-username>/<your-test-repo>.git'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'echo "Pretend build step here"'
+                sh 'echo "Build step goes here"'
             }
         }
 
